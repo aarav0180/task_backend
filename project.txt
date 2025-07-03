@@ -1,0 +1,40 @@
+Architecture Overview
+The system has an orchestration server and a sandboxed agent container.
+The orchestration server exposes /schedule and /status/:id endpoints, manages job lifecycle, and spins up Firecracker VMs (or Docker containers for local dev).
+Each agent container runs:
+- JupyterLab (for code execution and context management)
+- xdot and X11 display server (for GUI automation)
+- noVNC (for live browser access)
+- Development tools (Python, Node.js, etc.)
+
+Security & Sandboxing
+Each job runs in an isolated Firecracker VM (or Docker container fallback).
+The agent container runs as a non-root user.
+Network and filesystem access are restricted to the job’s workspace.
+
+Tools Provided
+- Shell: Securely execute shell commands inside the container.
+- Code Execution: Use Jupyter kernels for Python, TypeScript, etc., with persistent context per job.
+- xdot: Control GUI apps via xdot and X11.
+- Filesystem: REST endpoints and Jupyter APIs for file operations.
+
+
+Context Management
+Use file-based state in the job workspace.
+Prune context files and notebook cells based on recency and relevance.
+For >1M token context, chunk and index state files, using summaries and embeddings for recall.
+
+Creative Extension
+Add an AI-powered project explainer: After each job completes, the agent generates a human-friendly summary and visual diagram of the generated codebase using an LLM and a graphing tool (e.g., Graphviz). This summary and diagram are included in the downloadable project folder and accessible via the status endpoint. This helps users quickly understand and onboard to any generated project.
+
+Orchestration Layer
+/schedule: Accepts a task, creates a workspace, launches a VM/container, returns a job ID.
+/status/:id: Returns job status and, if complete, a download link to the workspace.
+
+Scalability
+Stateless orchestration server; jobs are independent.
+Can be scaled horizontally via Kubernetes or Nomad (bonus: provide a sample manifest).
+
+Reliability
+Job state is persisted to disk.
+Graceful error handling and logging.

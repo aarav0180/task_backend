@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: agent-job
+spec:
+  template:
+    spec:
+      containers:
+      - name: agent
+        image: agent:latest
+        ports:
+        - containerPort: 8080
+        - containerPort: 8888
+        - containerPort: 5900
+        volumeMounts:
+        - name: workspace
+          mountPath: /home/agent/workspace
+      restartPolicy: Never
+      volumes:
+      - name: workspace
+        emptyDir: {}
